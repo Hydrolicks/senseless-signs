@@ -154,7 +154,7 @@ const T = {
     hint: "Tip: watch it twice in slow motion, then sign it in front of the device.",
     f1: "Senseless is a final project at Ruppin Academic Center by Asaf Amrani and Gil Ohana, supervised by Dr. Benjamin Gur Solomon. It turns ASL signs and English speech into text on a Raspberry Pi, fully offline.",
     f2: "Green is the signer's left hand, amber the right. The figure faces you, like a teacher; use Mirror to copy it like a reflection.",
-    count: (n) => `${n} signs`,
+    count: (n) => (n === 1 ? "1 sign" : `${n} signs`),
   },
   he: {
     title: "למדו סימן, ונסו אותו על Senseless",
@@ -167,7 +167,7 @@ const T = {
     hint: "טיפ: צפו פעמיים בהילוך איטי, ואז בצעו את הסימן מול המכשיר.",
     f1: "Senseless הוא פרויקט גמר במרכז האקדמי רופין של אסף עמרני וגיל אוחנה, בהנחיית ד\"ר בנימין גור סולומון. המכשיר הופך שפת סימנים אמריקאית ודיבור באנגלית לטקסט על Raspberry Pi, ללא אינטרנט.",
     f2: "ירוק הוא היד השמאלית של המסמן, וכתום הימנית. הדמות פונה אליכם, כמו מורה; לחצו על \"מראה\" כדי לחקות אותה כמו בבואה.",
-    count: (n) => `${n} סימנים`,
+    count: (n) => (n === 1 ? "סימן אחד" : `${n} סימנים`),
   },
 };
 let lang = "en";

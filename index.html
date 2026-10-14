@@ -56,6 +56,7 @@ h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.04; font-weight: 800; let
 /* grid */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 18px; padding: 22px 0 40px; }
 .tile { all: unset; cursor: pointer; display: block; }
+.tile[hidden] { display: none; }   /* `all: unset` would otherwise override the hidden attribute */
 .tile .stage { background: var(--stage); border-radius: var(--radius-stage); aspect-ratio: 1 / 1.1; overflow: hidden; }
 .tile canvas { width: 100%; height: 100%; display: block; }
 .tile .w { font-weight: 700; font-size: 20px; margin: 8px 2px 0; }
@@ -241,16 +242,30 @@ const tiles = D.words.map((word) => {
 });
 
 function label(word) { return lang === "he" ? [word.he, word.en] : [word.en, word.he]; }
+// Search text: lower case, no Hebrew vowel marks, punctuation and hyphens as spaces, single spaces.
+const norm = (s) => s.toLowerCase().normalize("NFKD").replace(/[֑-ׇ]/g, "")
+  .replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+// Every way a word can be written: English label, label id and Hebrew, each also without spaces.
+const forms = (w) => [...new Set([w.en, w.id, w.he].map(norm).flatMap((f) => [f, f.replace(/ /g, "")]))];
+// Exact matches win (Love / אהבה shows only Love); otherwise words that start with the query,
+// or with any of its words' starts ("you" finds Thank you).
+function matches(q) {
+  if (!q) return () => true;
+  const qs = q.replace(/ /g, "");
+  const exact = tiles.filter(({ word }) => forms(word).some((f) => f === q || f === qs));
+  if (exact.length) { const set = new Set(exact.map((t) => t.word)); return (w) => set.has(w); }
+  return (w) => forms(w).some((f) => f.startsWith(q) || f.startsWith(qs) || f.split(" ").some((part) => part.startsWith(q)));
+}
 function render() {
-  const q = document.getElementById("q").value.trim().toLowerCase();
+  const hit = matches(norm(document.getElementById("q").value));
   let shown = 0;
   for (const { b, word } of tiles) {
     const [main, sub] = label(word);
     b.querySelector(".w").textContent = main;
     b.querySelector(".t").textContent = sub;
     b.setAttribute("aria-label", `${word.en}, ${word.he}`);
-    const hit = !q || word.en.toLowerCase().includes(q) || word.id.toLowerCase().includes(q) || word.he.includes(q);
-    b.hidden = !hit; shown += hit;
+    const ok = hit(word);
+    b.hidden = !ok; shown += ok;
   }
   document.getElementById("empty").hidden = shown > 0;
   document.getElementById("count").textContent = T[lang].count(shown);
